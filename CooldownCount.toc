@@ -1,4 +1,4 @@
-## Interface: 90000
+## Interface: 90001
 ## Title: Cooldown Count
 ## Title-koKR: |CFF99FF99C|r|CFFFFFFFFooldown|r|CFF99FF99C|r|CFFFFFFFFount|r
 ## Notes: Display Cooldown Count of Spell Icon and Item
