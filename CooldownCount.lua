@@ -5,12 +5,14 @@ local SM = LibStub("LibSharedMedia-3.0")
 local config = LibStub("AceConfig-3.0")
 local dialog = LibStub("AceConfigDialog-3.0")
 local blacklist = { "TargetFrame", "PetAction", "TotemFrame", "PartyFrame", "TargetofTargetFrame", "FocusFrame", "RaidFrame", "CompactRaidGroup", "LAB10ChargeCooldown" }
+local sformat = string.format
 
 local defaults = {
 	profile = {
 		shine = false,
 		shineScale = 2,
 		ShowDecimal = true,
+		ShowSeconds = false,
 		UseBlizCounter = false,
 		WarnSpeed = 0.25,
 		minimumDuration = 3,
@@ -213,6 +215,13 @@ function CooldownCount:OnInitialize()
 						desc = L["Show decimal below 1 sec."],
 						width = "full",
 						order = 71,
+					},
+					ShowSeconds = {
+						type = "toggle",
+						name = L["Show seconds above 1 min"],
+						desc = L["Show seconds above 1 min."],
+						width = "full",
+						order = 72,
 					},
 					header_blizCounter = {
 						type = "header",
@@ -444,6 +453,10 @@ function CooldownCount:GetFormattedTime(secs)
 	elseif secs >= 600 then
 		return ceil(secs / 60) .. L["m"], mod(secs, 60), CooldownCount.db.profile.size1
 	elseif secs >= 60 then
+		if CooldownCount.db.profile.ShowSeconds
+		then
+			return sformat("%d:%02d", floor((secs+addSec) / 60), floor(mod(secs+addSec, 60))), 0.100, CooldownCount.db.profile.size1
+		end
 		return ceil(secs / 60) .. L["m"], mod(secs, 60), CooldownCount.db.profile.size2
 	elseif secs >= 10 then
 		return floor(secs+addSec), 0.100, CooldownCount.db.profile.size3
@@ -566,14 +579,14 @@ local function CooldownCount_Commands(command)
       else
         if(_G[param2] == nil)
         then
-          CooldownCount_ChatPrint(string.format(L["Frame '%s' is not known. Cannot add it to user blacklist."],param2));
+          CooldownCount_ChatPrint(sformat(L["Frame '%s' is not known. Cannot add it to user blacklist."],param2));
         else
           if(CooldownCount.db.profile.blacklist == nil)
           then
             CooldownCount.db.profile.blacklist = {};
           end
           tinsert(CooldownCount.db.profile.blacklist,param2);
-          CooldownCount_ChatPrint(string.format(L["Frame '%s' added to user blacklist."],param2));
+          CooldownCount_ChatPrint(sformat(L["Frame '%s' added to user blacklist."],param2));
         end
       end
     elseif(cmd2 == "del")
@@ -592,11 +605,11 @@ local function CooldownCount_Commands(command)
           if(param2 == v)
           then
             tremove(CooldownCount.db.profile.blacklist,i);
-            CooldownCount_ChatPrint(string.format(L["Frame '%s' removed from user blacklist."],param2));
+            CooldownCount_ChatPrint(sformat(L["Frame '%s' removed from user blacklist."],param2));
             return;
           end
         end
-        CooldownCount_ChatPrint(string.format(L["Frame '%s' is not in user blacklist."],param2));
+        CooldownCount_ChatPrint(sformat(L["Frame '%s' is not in user blacklist."],param2));
       end
     elseif(cmd2 == "list")
     then
@@ -610,11 +623,11 @@ local function CooldownCount_Commands(command)
       end
       CooldownCount_ChatPrint(L["End of list"]);
     else
-      CooldownCount_ChatPrint(string.format(L["Unknown or missing parameter for 'blacklist' command: %s"],param));
+      CooldownCount_ChatPrint(sformat(L["Unknown or missing parameter for 'blacklist' command: %s"],param));
       CooldownCount_ShowHelp();
     end
   else
-    CooldownCount_ChatPrint(string.format(L["Unknown command: %s"],cmd));
+    CooldownCount_ChatPrint(sformat(L["Unknown command: %s"],cmd));
     CooldownCount_ShowHelp();
   end
 end
@@ -639,4 +652,4 @@ end)
 
 f:RegisterEvent('ACTIONBAR_UPDATE_COOLDOWN')
 
-CooldownCount_ChatPrint(string.format(L["CooldownCount v%s loaded!\nType /cooldowncount (or /cc) for help"],GetAddOnMetadata("CooldownCount", "Version")));
+CooldownCount_ChatPrint(sformat(L["CooldownCount v%s loaded!\nType /cooldowncount (or /cc) for help"],GetAddOnMetadata("CooldownCount", "Version")));
