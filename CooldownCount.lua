@@ -317,6 +317,9 @@ function CooldownCount:initFontStyle()
 end
 
 function CooldownCount.SetCooldown(frame, start, duration, enable, forceShowDrawEdge, modRate)
+	if not frame or not frame.GetName then
+		kud("CooldownCount: frame doesn't have GetName: "..tostring(type(frame)))
+	end
 	local fname = frame:GetName();
 
 	--black list handle
