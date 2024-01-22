@@ -9,7 +9,7 @@
 ## Notes-deDE: Anzeige der Abklingzeit auf den Symbolen von Gegenständen und Fähigkeiten.
 ## Notes-ruRU: Отображает таймер отката умений на их иконках.
 ## Author: hshh
-## Version: 10.2.5
+## Version: 10.2.5.1
 ## X-Embeds: Ace3, LibSharedMedia-3.0
 ## X-eMail: hshh@hshh.org
 ## X-Website: http://www.hshh.org/

@@ -318,7 +318,10 @@ end
 
 function CooldownCount.SetCooldown(frame, start, duration, enable, forceShowDrawEdge, modRate)
 	if not frame or not frame.GetName then
-		kud("CooldownCount: frame doesn't have GetName: "..tostring(type(frame)))
+		if kud then
+			kud("CooldownCount: frame doesn't have GetName: "..tostring(type(frame)))
+		end
+		return
 	end
 	local fname = frame:GetName();
 
