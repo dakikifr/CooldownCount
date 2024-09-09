@@ -6,6 +6,7 @@ local config = LibStub("AceConfig-3.0")
 local dialog = LibStub("AceConfigDialog-3.0")
 local blacklist = { "TargetFrame", "PetAction", "TotemFrame", "PartyFrame", "TargetofTargetFrame", "FocusFrame", "RaidFrame", "CompactRaidGroup", "LAB10ChargeCooldown" }
 local sformat = string.format
+local GetAddOnMetadata = C_AddOns.GetAddOnMetadata
 
 local defaults = {
 	profile = {
