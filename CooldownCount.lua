@@ -352,11 +352,14 @@ function CooldownCount.SetCooldown(frame, start, duration, enable, forceShowDraw
 end
 
 function CooldownCount:CreateCooldownCount(frame, start, duration)
-	local fname = frame:GetName();
-	frame.cooldownCounFrame = CreateFrame("Frame", nil, frame:GetParent())
+	local parent = frame:GetParent()
+	frame.cooldownCounFrame = CreateFrame("Frame", nil, parent)
+	if parent == nil then
+		return
+	end
 	local textFrame = frame.cooldownCounFrame
 
-	textFrame:SetAllPoints(frame:GetParent())
+	textFrame:SetAllPoints(parent)
 	textFrame:SetFrameLevel(textFrame:GetFrameLevel() + 5)
 	textFrame:SetToplevel(true)
 	textFrame.timeToNextUpdate = 0
@@ -366,9 +369,9 @@ function CooldownCount:CreateCooldownCount(frame, start, duration)
 
 	textFrame.icon =
 		--standard action button icon, $parentIcon
-		_G[frame:GetParent():GetName() .. "Icon"] or
+		_G[parent:GetName() .. "Icon"] or
 		--standard item button icon,  $parentIconTexture
-		_G[frame:GetParent():GetName() .. "IconTexture"]
+		_G[parent:GetName() .. "IconTexture"]
 
 	if textFrame.icon then        
 		textFrame:SetScript("OnUpdate", function(self, elapsed)
