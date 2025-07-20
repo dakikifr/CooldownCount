@@ -354,8 +354,14 @@ end
 function CooldownCount:CreateCooldownCount(frame, start, duration)
 	local parent = frame:GetParent()
 	frame.cooldownCounFrame = CreateFrame("Frame", nil, parent)
-	if parent == nil then
+	local frameName = frame:GetName()
+	if parent == nil or frameName == nil then
 		return
+	end
+	local parentName = parent:GetName()
+	if parentName == nil
+	then
+		parentName = frameName.."Parent"
 	end
 	local textFrame = frame.cooldownCounFrame
 
@@ -369,9 +375,9 @@ function CooldownCount:CreateCooldownCount(frame, start, duration)
 
 	textFrame.icon =
 		--standard action button icon, $parentIcon
-		_G[parent:GetName() .. "Icon"] or
+		_G[parentName .. "Icon"] or
 		--standard item button icon,  $parentIconTexture
-		_G[parent:GetName() .. "IconTexture"]
+		_G[parentName .. "IconTexture"]
 
 	if textFrame.icon then        
 		textFrame:SetScript("OnUpdate", function(self, elapsed)
