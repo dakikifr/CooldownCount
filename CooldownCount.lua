@@ -4,7 +4,8 @@ local L = LibStub("AceLocale-3.0"):GetLocale("CooldownCount")
 local SM = LibStub("LibSharedMedia-3.0")
 local config = LibStub("AceConfig-3.0")
 local dialog = LibStub("AceConfigDialog-3.0")
-local blacklist = { "TargetFrame", "PetAction", "TotemFrame", "PartyFrame", "TargetofTargetFrame", "FocusFrame", "RaidFrame", "CompactRaidGroup", "LAB10ChargeCooldown" }
+local blacklist = { "TargetFrame", "PetAction", "TotemFrame", "PartyFrame", "TargetofTargetFrame", "FocusFrame",
+	"RaidFrame", "CompactRaidGroup", "LAB10ChargeCooldown" }
 local sformat = string.format
 local GetAddOnMetadata = C_AddOns.GetAddOnMetadata
 
@@ -19,8 +20,8 @@ local defaults = {
 		minimumDuration = 3,
 		hideAnimation = false,
 		font = SM:GetDefault("font"),
-		color_common = {r=1, g=1, b=0.2, a=1},
-		color_warn = {r=1, g=0, b=0, a=1},
+		color_common = { r = 1, g = 1, b = 0.2, a = 1 },
+		color_warn = { r = 1, g = 0, b = 0, a = 1 },
 		size1 = 18,
 		size2 = 24,
 		size3 = 28,
@@ -29,12 +30,12 @@ local defaults = {
 	}
 }
 local function get(info)
-    local k = info[#info]
-    return CooldownCount.db.profile[k]
+	local k = info[#info]
+	return CooldownCount.db.profile[k]
 end
-local function set(info,value)
-    local k = info[#info]
-    CooldownCount.db.profile[k] = value
+local function set(info, value)
+	local k = info[#info]
+	CooldownCount.db.profile[k] = value
 	if k == "font" then
 		CooldownCount:initFontStyle()
 	end
@@ -56,7 +57,7 @@ function CooldownCount:OnInitialize()
 						type = "select",
 						name = L["Font Style"],
 						desc = L["Set cooldown value display font."],
-						order =10,
+						order = 10,
 						values = function()
 							local fonts, newFonts = SM:List("font"), {}
 							for k, v in pairs(fonts) do
@@ -77,11 +78,11 @@ function CooldownCount:OnInitialize()
 						order = 21,
 						hasAlpha = true,
 						get = function(info)
-							local k=info[#info]
+							local k = info[#info]
 							return self.db.profile[k].r, self.db.profile[k].g, self.db.profile[k].b, self.db.profile[k].a
 						end,
 						set = function(info, r, g, b, a)
-							local k=info[#info]
+							local k = info[#info]
 							self.db.profile[k].r, self.db.profile[k].g, self.db.profile[k].b, self.db.profile[k].a = r, g, b, a
 						end,
 					},
@@ -92,11 +93,11 @@ function CooldownCount:OnInitialize()
 						order = 22,
 						hasAlpha = true,
 						get = function(info)
-							local k=info[#info]
+							local k = info[#info]
 							return self.db.profile[k].r, self.db.profile[k].g, self.db.profile[k].b, self.db.profile[k].a
 						end,
 						set = function(info, r, g, b, a)
-							local k=info[#info]
+							local k = info[#info]
 							self.db.profile[k].r, self.db.profile[k].g, self.db.profile[k].b, self.db.profile[k].a = r, g, b, a
 						end,
 					},
@@ -232,7 +233,8 @@ function CooldownCount:OnInitialize()
 					UseBlizCounter = {
 						type = "toggle",
 						name = L["Use Blizzard time display"],
-						desc = L["Blizzard display 0 between 0 and 0.999 remaining seconds. Disabling this option will show 1 instead."],
+						desc = L
+								["Blizzard display 0 between 0 and 0.999 remaining seconds. Disabling this option will show 1 instead."],
 						width = "full",
 						order = 81,
 					},
@@ -269,7 +271,8 @@ function CooldownCount:OnInitialize()
 		},
 	})
 	dialog:SetDefaultSize("CooldownCount", 600, 400)
-	dialog:AddToBlizOptions("CooldownCount", "CooldownCount")
+	local _, categoryID = dialog:AddToBlizOptions("CooldownCount", "CooldownCount")
+	CooldownCount.categoryID = categoryID
 
 	config:RegisterOptionsTable("CooldownCount-Misc", options.args.Misc)
 	dialog:AddToBlizOptions("CooldownCount-Misc", options.args.Misc.name, "CooldownCount")
@@ -280,37 +283,41 @@ end
 
 local actions = {}
 local function action_OnShow(self)
-  actions[self] = true
+	actions[self] = true
 end
 
 local function action_OnHide(self)
-  actions[self] = nil
+	actions[self] = nil
 end
 
 local function action_Add(button, action, cooldown)
-  if not cooldown.cooldownCountAction then
-    cooldown:HookScript('OnShow', action_OnShow);
-    cooldown:HookScript('OnHide', action_OnHide);
-  end
-  cooldown.cooldownCountAction = action;
+	if not cooldown.cooldownCountAction then
+		cooldown:HookScript('OnShow', action_OnShow);
+		cooldown:HookScript('OnHide', action_OnHide);
+	end
+	cooldown.cooldownCountAction = action;
 end
 
 local function actions_Update()
-  for cooldown in pairs(actions) do
-    local start, duration = GetActionCooldown(cooldown.cooldownCountAction);
-    --CooldownCount.SetCooldown(cooldown, start, duration, 1);
-  end
+	for cooldown in pairs(actions) do
+		local start, duration = GetActionCooldown(cooldown.cooldownCountAction);
+		CooldownCount.SetCooldown(cooldown, start, duration, 1);
+	end
 end
 
 function CooldownCount:OnEnable()
 	self:initFontStyle()
-	hooksecurefunc("CooldownFrame_Set",CooldownCount.SetCooldown);
-    hooksecurefunc('SetActionUIButton', action_Add);
-
-    for i, button in pairs(ActionBarButtonEventsFrame.frames) do
-      action_Add(button, button.action, button.cooldown);
-    end
-
+	-- Hook the Cooldown widget's SetCooldown method for WoW 12.0+
+	-- Get the metatable of a Cooldown frame and hook its SetCooldown method
+	local cooldownMetatable = getmetatable(ActionButton1Cooldown).__index
+	if cooldownMetatable and cooldownMetatable.SetCooldown then
+		hooksecurefunc(cooldownMetatable, "SetCooldown", CooldownCount.SetCooldown)
+	else
+		self:Print("CooldownCount: WARNING - Could not hook SetCooldown method!")
+	end
+	for i, button in pairs(ActionBarActionEventsFrame.frames) do
+		action_Add(button, button.action, button.cooldown);
+	end
 end
 
 function CooldownCount:initFontStyle()
@@ -320,7 +327,7 @@ end
 function CooldownCount.SetCooldown(frame, start, duration, enable, forceShowDrawEdge, modRate)
 	if not frame or not frame.GetName then
 		if kud then
-			kud("CooldownCount: frame doesn't have GetName: "..tostring(type(frame)))
+			kud("CooldownCount: frame doesn't have GetName: " .. tostring(type(frame)))
 		end
 		return
 	end
@@ -330,7 +337,7 @@ function CooldownCount.SetCooldown(frame, start, duration, enable, forceShowDraw
 	if CooldownCount:CheckBlacklist(fname) then
 		return
 	end
-	
+
 	-- hide blz origin cooldown animation
 	frame:SetAlpha(CooldownCount.db.profile.hideAnimation and 0 or 1)
 
@@ -361,7 +368,7 @@ function CooldownCount:CreateCooldownCount(frame, start, duration)
 	local parentName = parent:GetName()
 	if parentName == nil
 	then
-		parentName = frameName.."Parent"
+		parentName = frameName .. "Parent"
 	end
 	local textFrame = frame.cooldownCounFrame
 
@@ -374,12 +381,12 @@ function CooldownCount:CreateCooldownCount(frame, start, duration)
 	textFrame.text:SetPoint("CENTER", textFrame, "CENTER", 0, -1)
 
 	textFrame.icon =
-		--standard action button icon, $parentIcon
-		_G[parentName .. "Icon"] or
-		--standard item button icon,  $parentIconTexture
-		_G[parentName .. "IconTexture"]
+	--standard action button icon, $parentIcon
+			_G[parentName .. "Icon"] or
+			--standard item button icon,  $parentIconTexture
+			_G[parentName .. "IconTexture"]
 
-	if textFrame.icon then        
+	if textFrame.icon then
 		textFrame:SetScript("OnUpdate", function(self, elapsed)
 			if textFrame.timeToNextUpdate <= 0 or not textFrame.icon:IsVisible() then
 				--[[
@@ -405,7 +412,7 @@ function CooldownCount:CreateCooldownCount(frame, start, duration)
 						if current_time >= textFrame.nextWarnSwitch then
 							if textFrame.isWarn == 2 then -- Was warn color, go to normal color
 								textFrame.isWarn = 1
-							else -- Was normal color, go to warn color
+							else                   -- Was normal color, go to warn color
 								textFrame.isWarn = 2
 							end
 							textFrame.nextWarnSwitch = current_time + CooldownCount.db.profile.WarnSpeed
@@ -418,12 +425,12 @@ function CooldownCount:CreateCooldownCount(frame, start, duration)
 					textFrame.text:SetTextColor(color.r, color.g, color.b)
 					if type(text) == "number" then
 						if text < 1 and CooldownCount.db.profile.ShowDecimal then
-							textFrame.text:SetText( format("%.1f",text) )
+							textFrame.text:SetText(format("%.1f", text))
 						else
-							textFrame.text:SetText( format("%.0f",text) )
+							textFrame.text:SetText(format("%.0f", text))
 						end
 					else
-						textFrame.text:SetText( text )
+						textFrame.text:SetText(text)
 					end
 					textFrame.timeToNextUpdate = toNextUpdate
 				else
@@ -471,25 +478,25 @@ function CooldownCount:GetFormattedTime(secs)
 	elseif secs >= 60 then
 		if CooldownCount.db.profile.ShowSeconds
 		then
-			return sformat("%d:%02d", floor((secs+addSec) / 60), floor(mod(secs+addSec, 60))), 0.100, CooldownCount.db.profile.size1
+			return sformat("%d:%02d", floor((secs + addSec) / 60), floor(mod(secs + addSec, 60))), 0.100,
+					CooldownCount.db.profile.size1
 		end
 		return ceil(secs / 60) .. L["m"], mod(secs, 60), CooldownCount.db.profile.size2
 	elseif secs >= 10 then
-		return floor(secs+addSec), 0.100, CooldownCount.db.profile.size3
+		return floor(secs + addSec), 0.100, CooldownCount.db.profile.size3
 	elseif secs >= 2 then
-		return floor(secs+addSec), 0.050, CooldownCount.db.profile.size4, true
+		return floor(secs + addSec), 0.050, CooldownCount.db.profile.size4, true
 	elseif secs >= 1 then
-		return floor(secs+addSec), 0.025, CooldownCount.db.profile.size4, true
+		return floor(secs + addSec), 0.025, CooldownCount.db.profile.size4, true
 	end
-	if(CooldownCount.db.profile.ShowDecimal)
+	if (CooldownCount.db.profile.ShowDecimal)
 	then
 		return secs, 0.010, CooldownCount.db.profile.size2, true
 	end
-	return floor(secs+addSec), 0.010, CooldownCount.db.profile.size4, true
+	return floor(secs + addSec), 0.010, CooldownCount.db.profile.size4, true
 end
 
-
---[[ Shine Codes ]]--
+--[[ Shine Codes ]] --
 function CooldownCount:StartToShine(textFrame)
 	local shineFrame = textFrame.shine or CooldownCount:CreateShineFrame(textFrame:GetParent())
 
@@ -537,15 +544,15 @@ function CooldownCount:CheckBlacklist(frameName)
 	-- Global blacklist
 	for _, v in ipairs(blacklist) do
 		if strfind(frameName, v) then
-			_G[frameName].noCooldownCount=1
+			_G[frameName].noCooldownCount = 1
 			return true
 		end
 	end
 	-- User blacklist
-	if(CooldownCount.db.profile.blacklist) then
+	if (CooldownCount.db.profile.blacklist) then
 		for _, v in ipairs(CooldownCount.db.profile.blacklist) do
 			if strfind(frameName, v) then
-				_G[frameName].noCooldownCount=1
+				_G[frameName].noCooldownCount = 1
 				return true
 			end
 		end
@@ -553,109 +560,109 @@ function CooldownCount:CheckBlacklist(frameName)
 	return false
 end
 
-local function CooldownCount_ChatPrint(str,r,g,b)
-  if(DEFAULT_CHAT_FRAME)
-  then
-    DEFAULT_CHAT_FRAME:AddMessage("CooldownCount: "..str, r or 1.0, g or 0.7, b or 0.15);
-  end
+local function CooldownCount_ChatPrint(str, r, g, b)
+	if (DEFAULT_CHAT_FRAME)
+	then
+		DEFAULT_CHAT_FRAME:AddMessage("CooldownCount: " .. str, r or 1.0, g or 0.7, b or 0.15);
+	end
 end
 
 local function CooldownCount_ShowHelp()
-  CooldownCount_ChatPrint("Usage:");
-  CooldownCount_ChatPrint("  |cffffffff/cc options|r - "..L["Opens options panel"]);
-  CooldownCount_ChatPrint("  |cffffffff/cc bl add <FrameName>|r - "..L["Adds a frame to the user blacklist"]);
-  CooldownCount_ChatPrint("  |cffffffff/cc bl del <FrameName>|r - "..L["Removes a frame from the user blacklist"]);
-  CooldownCount_ChatPrint("  |cffffffff/cc bl list|r - "..L["List user blacklisted frames"]);
+	CooldownCount_ChatPrint("Usage:");
+	CooldownCount_ChatPrint("  |cffffffff/cc options|r - " .. L["Opens options panel"]);
+	CooldownCount_ChatPrint("  |cffffffff/cc bl add <FrameName>|r - " .. L["Adds a frame to the user blacklist"]);
+	CooldownCount_ChatPrint("  |cffffffff/cc bl del <FrameName>|r - " .. L["Removes a frame from the user blacklist"]);
+	CooldownCount_ChatPrint("  |cffffffff/cc bl list|r - " .. L["List user blacklisted frames"]);
 end
 
 local function CooldownCount_Commands(command)
-  local _,_,cmd,param = strfind(command,"^([^ ]+) (.+)$");
-  if(not cmd) then cmd = command; end
-  if(not cmd) then cmd = ""; end
-  if(not param) then param = ""; end
+	local _, _, cmd, param = strfind(command, "^([^ ]+) (.+)$");
+	if (not cmd) then cmd = command; end
+	if (not cmd) then cmd = ""; end
+	if (not param) then param = ""; end
 
-  if((cmd == "") or (cmd == "help"))
-  then
-    CooldownCount_ShowHelp();
-  elseif(cmd == "options")
-  then
-    InterfaceOptionsFrame_OpenToCategory("CooldownCount");
-  elseif(cmd == "bl")
-  then
-    local _,_,cmd2,param2 = strfind(param,"^([^ ]+) (.+)$");
-    if(not cmd2) then cmd2 = param; end
-    if(not cmd2) then cmd2 = ""; end
-    if(not param2) then param2 = ""; end
-    if(cmd2 == "add")
-    then
-      if(param2 == "")
-      then
-        CooldownCount_ChatPrint(L["Missing parameter for 'blacklist add' command"]);
-        CooldownCount_ShowHelp();
-      else
-        if(_G[param2] == nil)
-        then
-          CooldownCount_ChatPrint(sformat(L["Frame '%s' is not known. Cannot add it to user blacklist."],param2));
-        else
-          if(CooldownCount.db.profile.blacklist == nil)
-          then
-            CooldownCount.db.profile.blacklist = {};
-          end
-          tinsert(CooldownCount.db.profile.blacklist,param2);
-          CooldownCount_ChatPrint(sformat(L["Frame '%s' added to user blacklist."],param2));
-        end
-      end
-    elseif(cmd2 == "del")
-    then
-      if(param2 == "")
-      then
-        CooldownCount_ChatPrint(L["Missing parameter for 'blacklist del' command"]);
-        CooldownCount_ShowHelp();
-      else
-        if(CooldownCount.db.profile.blacklist == nil)
-        then
-          CooldownCount.db.profile.blacklist = {};
-        end
-        for i,v in ipairs(CooldownCount.db.profile.blacklist)
-        do
-          if(param2 == v)
-          then
-            tremove(CooldownCount.db.profile.blacklist,i);
-            CooldownCount_ChatPrint(sformat(L["Frame '%s' removed from user blacklist."],param2));
-            return;
-          end
-        end
-        CooldownCount_ChatPrint(sformat(L["Frame '%s' is not in user blacklist."],param2));
-      end
-    elseif(cmd2 == "list")
-    then
-      CooldownCount_ChatPrint(L["User blacklist:"]);
-      if(CooldownCount.db.profile.blacklist)
-      then
-        for _, v in ipairs(CooldownCount.db.profile.blacklist)
-        do
-          CooldownCount_ChatPrint(" - "..v);
-        end
-      end
-      CooldownCount_ChatPrint(L["End of list"]);
-    else
-      CooldownCount_ChatPrint(sformat(L["Unknown or missing parameter for 'blacklist' command: %s"],param));
-      CooldownCount_ShowHelp();
-    end
-  else
-    CooldownCount_ChatPrint(sformat(L["Unknown command: %s"],cmd));
-    CooldownCount_ShowHelp();
-  end
+	if ((cmd == "") or (cmd == "help"))
+	then
+		CooldownCount_ShowHelp();
+	elseif (cmd == "options")
+	then
+		Settings.OpenToCategory(CooldownCount.categoryID);
+	elseif (cmd == "bl")
+	then
+		local _, _, cmd2, param2 = strfind(param, "^([^ ]+) (.+)$");
+		if (not cmd2) then cmd2 = param; end
+		if (not cmd2) then cmd2 = ""; end
+		if (not param2) then param2 = ""; end
+		if (cmd2 == "add")
+		then
+			if (param2 == "")
+			then
+				CooldownCount_ChatPrint(L["Missing parameter for 'blacklist add' command"]);
+				CooldownCount_ShowHelp();
+			else
+				if (_G[param2] == nil)
+				then
+					CooldownCount_ChatPrint(sformat(L["Frame '%s' is not known. Cannot add it to user blacklist."], param2));
+				else
+					if (CooldownCount.db.profile.blacklist == nil)
+					then
+						CooldownCount.db.profile.blacklist = {};
+					end
+					tinsert(CooldownCount.db.profile.blacklist, param2);
+					CooldownCount_ChatPrint(sformat(L["Frame '%s' added to user blacklist."], param2));
+				end
+			end
+		elseif (cmd2 == "del")
+		then
+			if (param2 == "")
+			then
+				CooldownCount_ChatPrint(L["Missing parameter for 'blacklist del' command"]);
+				CooldownCount_ShowHelp();
+			else
+				if (CooldownCount.db.profile.blacklist == nil)
+				then
+					CooldownCount.db.profile.blacklist = {};
+				end
+				for i, v in ipairs(CooldownCount.db.profile.blacklist)
+				do
+					if (param2 == v)
+					then
+						tremove(CooldownCount.db.profile.blacklist, i);
+						CooldownCount_ChatPrint(sformat(L["Frame '%s' removed from user blacklist."], param2));
+						return;
+					end
+				end
+				CooldownCount_ChatPrint(sformat(L["Frame '%s' is not in user blacklist."], param2));
+			end
+		elseif (cmd2 == "list")
+		then
+			CooldownCount_ChatPrint(L["User blacklist:"]);
+			if (CooldownCount.db.profile.blacklist)
+			then
+				for _, v in ipairs(CooldownCount.db.profile.blacklist)
+				do
+					CooldownCount_ChatPrint(" - " .. v);
+				end
+			end
+			CooldownCount_ChatPrint(L["End of list"]);
+		else
+			CooldownCount_ChatPrint(sformat(L["Unknown or missing parameter for 'blacklist' command: %s"], param));
+			CooldownCount_ShowHelp();
+		end
+	else
+		CooldownCount_ChatPrint(sformat(L["Unknown command: %s"], cmd));
+		CooldownCount_ShowHelp();
+	end
 end
 
 SLASH_COOLDOWNCOUNT1 = "/cooldowncount";
 SlashCmdList["COOLDOWNCOUNT"] = function(msg)
-  CooldownCount_Commands(msg);
+	CooldownCount_Commands(msg);
 end
 
 SLASH_CC1 = "/cc";
 SlashCmdList["CC"] = function(msg)
-  CooldownCount_Commands(msg);
+	CooldownCount_Commands(msg);
 end
 
 local f = CreateFrame('Frame'); f:Hide()
@@ -668,4 +675,5 @@ end)
 
 f:RegisterEvent('ACTIONBAR_UPDATE_COOLDOWN')
 
-CooldownCount_ChatPrint(sformat(L["CooldownCount v%s loaded!\nType /cooldowncount (or /cc) for help"],GetAddOnMetadata("CooldownCount", "Version")));
+CooldownCount_ChatPrint(sformat(L["CooldownCount v%s loaded!\nType /cooldowncount (or /cc) for help"],
+	GetAddOnMetadata("CooldownCount", "Version")));
