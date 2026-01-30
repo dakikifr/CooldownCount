@@ -341,6 +341,52 @@ function CooldownCount.SetCooldown(frame, start, duration, enable, forceShowDraw
 	-- hide blz origin cooldown animation
 	frame:SetAlpha(CooldownCount.db.profile.hideAnimation and 0 or 1)
 
+	-- WoW 12.0+: Check if values are secret
+	local isSecret = issecretvalue and (issecretvalue(start) or issecretvalue(duration) or issecretvalue(enable))
+
+	if isSecret then
+		-- In WoW 12.0 Midnight, cooldown values are secret during combat
+		-- We cannot access start/duration values for ActionButtons
+		-- The best we can do is enable Blizzard's built-in countdown text
+		-- and customize it with SetCountdownFont
+
+		-- Try to get actionID from the cooldown frame for DurationObject approach
+		local actionID = frame.cooldownCountAction
+		if actionID and C_ActionBar and C_ActionBar.GetActionCooldownDuration then
+			-- We have an action ID, we can try to use the DurationObject API
+			local durationObj = C_ActionBar.GetActionCooldownDuration(actionID)
+			if durationObj then
+				-- Enable Blizzard's countdown text and customize it
+				frame:SetHideCountdownNumbers(false)
+				if CooldownCount.font and frame.SetCountdownFont then
+					frame:SetCountdownFont(CooldownCount.font)
+				end
+				-- Hide our custom overlay if it exists since we're using Blizzard's
+				local CC = frame.cooldownCounFrame
+				if CC and CC:IsShown() then
+					CC:Hide()
+				end
+				return
+			end
+		end
+
+		-- Fallback: enable Blizzard's countdown text for this frame
+		frame:SetHideCountdownNumbers(false)
+		if CooldownCount.font and frame.SetCountdownFont then
+			frame:SetCountdownFont(CooldownCount.font)
+		end
+		-- Hide our custom overlay if it exists
+		local CC = frame.cooldownCounFrame
+		if CC and CC:IsShown() then
+			CC:Hide()
+		end
+		return
+	end
+
+	-- Non-secret values: use traditional CooldownCount display
+	-- Also hide Blizzard's countdown text since we're showing our own
+	frame:SetHideCountdownNumbers(true)
+
 	if enable and enable ~= 0 and start > 0 and duration > CooldownCount.db.profile.minimumDuration
 	then
 		local CC = frame.cooldownCounFrame or CooldownCount:CreateCooldownCount(frame, start, duration)
@@ -393,10 +439,21 @@ function CooldownCount:CreateCooldownCount(frame, start, duration)
 					If you have a long cooldown spell/item, after reboot your computer, cooldown value will be wrong.
 					I still havn't any idea for it.
 				]]
-				local current_time = GetTime()
-				if current_time < textFrame.start then return end
+				local startVal = textFrame.start
+				local durationVal = textFrame.duration
 
-				local remain = textFrame.duration - (current_time - textFrame.start)
+				-- WoW 12.0: If values are secret, we can't use them - hide this frame
+				-- The main SetCooldown function will have enabled Blizzard's countdown instead
+				if issecretvalue and (issecretvalue(startVal) or issecretvalue(durationVal)) then
+					-- Values are secret, hide our custom text and let Blizzard handle it
+					textFrame:Hide()
+					return
+				end
+
+				local current_time = GetTime()
+				if current_time < startVal then return end
+
+				local remain = durationVal - (current_time - startVal)
 
 				if floor(remain + 1) > 0 and textFrame.icon:IsVisible() then
 					local text, toNextUpdate, size, isWarn = CooldownCount:GetFormattedTime(remain)
