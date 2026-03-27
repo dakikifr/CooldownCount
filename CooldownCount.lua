@@ -315,6 +315,29 @@ function CooldownCount:OnEnable()
 	else
 		self:Print("CooldownCount: WARNING - Could not hook SetCooldown method!")
 	end
+	-- Also hook SetCooldownFromDurationObject for addons using Duration Object API (e.g. Bartender4 with LibActionButton)
+	if cooldownMetatable and cooldownMetatable.SetCooldownFromDurationObject then
+		hooksecurefunc(cooldownMetatable, "SetCooldownFromDurationObject", function(frame, durationObject)
+			if not frame or not frame.GetCooldownTimes then return end
+			local startMS, durationMS = frame:GetCooldownTimes()
+			if issecretvalue and (issecretvalue(startMS) or issecretvalue(durationMS)) then
+				-- Secret values: delegate to Blizzard's built-in countdown
+				frame:SetHideCountdownNumbers(false)
+				if CooldownCount.font and frame.SetCountdownFont then
+					frame:SetCountdownFont(CooldownCount.font)
+				end
+				local CC = frame.cooldownCounFrame
+				if CC and CC:IsShown() then
+					CC:Hide()
+				end
+				return
+			end
+			local start = (startMS or 0) / 1000
+			local duration = (durationMS or 0) / 1000
+			local enable = (duration > 0) and 1 or 0
+			CooldownCount.SetCooldown(frame, start, duration, enable)
+		end)
+	end
 	for i, button in pairs(ActionBarActionEventsFrame.frames) do
 		action_Add(button, button.action, button.cooldown);
 	end
